@@ -48,6 +48,7 @@ app.use(
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(feedRoutes);
+app.use(require('./routes/user'));
 app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
@@ -65,6 +66,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
+    useFindAndModify: false,
   })
   .then((result) => {
     console.log('database connection success!!');

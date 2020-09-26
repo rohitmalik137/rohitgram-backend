@@ -22,11 +22,11 @@ const authSchema = new Schema({
     required: true,
   },
   followers: {
-    type: Number,
+    type: Array,
     required: true,
   },
   following: {
-    type: Number,
+    type: Array,
     required: true,
   },
 });

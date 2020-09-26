@@ -18,8 +18,8 @@ exports.signup = (req, res, next) => {
           email: email,
           password: hashedPwd,
           posts: 0,
-          followers: 0,
-          following: 0,
+          followers: [],
+          following: [],
         });
         newUser
           .save()
@@ -91,6 +91,7 @@ exports.login = (req, res, next) => {
         process.env.JWT_SECRET_KEY,
         { expiresIn: '1h' }
       );
+      console.log(loadedUser);
       res.status(200).json({
         token: token,
         user: {

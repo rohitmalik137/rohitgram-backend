@@ -25,12 +25,16 @@ exports.uploadNewPost = (req, res, next) => {
     mediaUrl,
     caption,
     likes,
+    comments,
     caption,
     userId,
   });
   newPost
     .save()
     .then((result) => {
+      Auth.updateOne({ _id: userId }, { $inc: { posts: 1 } }).then((res) =>
+        console.log(res)
+      );
       res.status(201).json({
         message: 'Post uploaded successfully!',
         post: result,
@@ -47,9 +51,8 @@ exports.uploadNewPost = (req, res, next) => {
 
 exports.getPosts = (req, res, next) => {
   const username = req.params.username;
-  console.log(username);
+  // console.log(username);
   Auth.findOne({ username }).then((result) => {
-    console.log(result._id);
     const userId = result._id;
     Post.find({ userId })
       .then((posts) => {
