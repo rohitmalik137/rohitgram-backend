@@ -1,4 +1,5 @@
 const Auth = require('../models/auth');
+const { validationResult } = require('express-validator');
 
 exports.getUsers = (req, res, next) => {
   Auth.find()
@@ -70,6 +71,29 @@ exports.updateUnfollow = (req, res, next) => {
           res.status(400).json({ msg: err.message });
         });
     })
+    .catch((err) => {
+      res.status(400).json({ msg: err.message });
+    });
+};
+
+exports.updateProfile = (req, res, next) => {
+  console.log(req.body.username);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      message: 'validation failed, Please enter an image only',
+      errors: errors.array(),
+    });
+  }
+  if (!req.file) {
+    const error = new Error('No image provided.');
+    error.statusCode = 422;
+    throw error;
+  }
+  const username = req.body.username;
+  const profileUrl = req.file.path;
+  Auth.findOneAndUpdate({ username }, { profileUrl: profileUrl }, { new: true })
+    .then((data) => res.json({ data }))
     .catch((err) => {
       res.status(400).json({ msg: err.message });
     });
