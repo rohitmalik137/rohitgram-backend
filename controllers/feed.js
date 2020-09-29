@@ -18,14 +18,14 @@ exports.uploadNewPost = (req, res, next) => {
   }
 
   const mediaUrl = req.file.path;
-  const { caption, likes, comments, userId } = req.body;
+  const { caption, userId } = req.body;
   // const userId = '5f4b21d71d824c2ee8966f96';
   console.log(mediaUrl, caption, userId);
   const newPost = new Post({
     mediaUrl,
     caption,
-    likes,
-    comments,
+    likes: [],
+    comments: {},
     caption,
     userId,
   });
@@ -67,5 +67,51 @@ exports.getPosts = (req, res, next) => {
         }
         next(err);
       });
+  });
+};
+
+exports.getAllPosts = (req, res, next) => {
+  Post.find()
+    .sort({ createdAt: -1 })
+    .populate('userId')
+    .then((data) => res.json(data));
+};
+
+exports.getSinglePost = (req, res, next) => {
+  const postId = req.params.postId;
+  // console.log(postId);
+  Post.findById(postId)
+    .populate('userId')
+    .then((data) => res.json(data));
+};
+
+exports.updateLikes = (req, res, next) => {
+  const { username, postId } = req.body;
+  // console.log(username, postId);
+
+  Post.findById(postId).then((data) => {
+    if (data.likes.find((name) => name === username)) {
+      Post.findOneAndUpdate(
+        { _id: postId },
+        { $pull: { likes: username } },
+        { new: true }
+      )
+        .populate('userId')
+        .then((data) => res.json({ data }))
+        .catch((err) => {
+          res.status(400).json({ msg: err.message });
+        });
+    } else {
+      Post.findOneAndUpdate(
+        { _id: postId },
+        { $push: { likes: username } },
+        { new: true }
+      )
+        .populate('userId')
+        .then((data) => res.json({ data }))
+        .catch((err) => {
+          res.status(400).json({ msg: err.message });
+        });
+    }
   });
 };

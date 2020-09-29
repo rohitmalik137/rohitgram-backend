@@ -15,5 +15,10 @@ router.post(
 
 //get posts from DB of a specific User
 router.get('/userPosts/:username', feedController.getPosts);
+router.get('/singlePost/:postId', feedController.getSinglePost);
+
+router.get('/allPosts', feedController.getAllPosts);
+
+router.patch('/updateLikes', isAuth, feedController.updateLikes);
 
 module.exports = router;

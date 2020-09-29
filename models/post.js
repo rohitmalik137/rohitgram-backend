@@ -13,6 +13,7 @@ const postSchema = new Schema(
     },
     likes: {
       type: Array,
+      required: true,
     },
     comments: {
       type: Object,
