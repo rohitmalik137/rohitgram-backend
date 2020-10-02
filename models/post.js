@@ -15,16 +15,13 @@ const postSchema = new Schema(
       type: Array,
       required: true,
     },
-    comments: {
-      type: Object,
-    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'Auth',
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: { type: Number, default: Date.now() } }
 );
 
 module.exports = mongoose.model('Post', postSchema);

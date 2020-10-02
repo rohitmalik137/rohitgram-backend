@@ -23,6 +23,14 @@ exports.getUserInfo = (req, res, next) => {
 };
 
 exports.updateFollow = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      message: 'error in following',
+      errors: errors.array(),
+    });
+  }
+
   const { username, followedUser } = req.body;
   console.log(username, followedUser);
 
@@ -50,6 +58,13 @@ exports.updateFollow = (req, res, next) => {
 };
 
 exports.updateUnfollow = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      message: 'error in unfollowing',
+      errors: errors.array(),
+    });
+  }
   const { username, followedUser } = req.body;
   console.log(username, followedUser);
 
@@ -77,7 +92,6 @@ exports.updateUnfollow = (req, res, next) => {
 };
 
 exports.updateProfile = (req, res, next) => {
-  console.log(req.body.username);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({

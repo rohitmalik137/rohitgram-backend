@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 
 const Post = require('../models/post');
 const Auth = require('../models/auth');
+const Comment = require('../models/comments');
 
 exports.uploadNewPost = (req, res, next) => {
   const errors = validationResult(req);
@@ -82,10 +83,24 @@ exports.getSinglePost = (req, res, next) => {
   // console.log(postId);
   Post.findById(postId)
     .populate('userId')
-    .then((data) => res.json(data));
+    .then((data) => {
+      Comment.find({ postId })
+        .populate('userId')
+        .sort({ createdAt: -1 })
+        .then((commentData) => {
+          res.json({ data, commentData });
+        });
+    });
 };
 
 exports.updateLikes = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      message: 'error in updating likes',
+      errors: errors.array(),
+    });
+  }
   const { username, postId } = req.body;
   // console.log(username, postId);
 
