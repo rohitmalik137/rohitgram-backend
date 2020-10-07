@@ -2,18 +2,28 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const replySchema = new Schema({
-  comment: {
-    type: String,
+const replyCommentSchema = new Schema(
+  {
+    comment: {
+      type: String,
+    },
+    likes: {
+      type: Array,
+    },
+    repliedTo: {
+      type: String,
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Auth',
+    },
+    parentCommentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Comment',
+    },
   },
-  likes: {
-    type: Array,
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Auth',
-  },
-});
+  { timestamps: true }
+);
 
 const commentSchema = new Schema(
   {
@@ -24,7 +34,6 @@ const commentSchema = new Schema(
       type: Array,
       required: true,
     },
-    replies: [replySchema],
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'Auth',
@@ -35,9 +44,14 @@ const commentSchema = new Schema(
       ref: 'Post',
       required: true,
     },
-    child: replySchema,
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Comment', commentSchema);
+const Comment = mongoose.model('Comment', commentSchema);
+const ReplyComment = mongoose.model('ReplyComment', replyCommentSchema);
+
+module.exports = {
+  Comment,
+  ReplyComment,
+};

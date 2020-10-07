@@ -2,7 +2,8 @@ const { validationResult } = require('express-validator');
 
 const Post = require('../models/post');
 const Auth = require('../models/auth');
-const Comment = require('../models/comments');
+const { Comment } = require('../models/comments');
+const { ReplyComment } = require('../models/comments');
 
 exports.uploadNewPost = (req, res, next) => {
   const errors = validationResult(req);
@@ -112,7 +113,14 @@ exports.updateLikes = (req, res, next) => {
         { new: true }
       )
         .populate('userId')
-        .then((data) => res.json({ data }))
+        .then((data) => {
+          Comment.find({ postId })
+            .populate('userId')
+            .sort({ createdAt: -1 })
+            .then((commentData) => {
+              res.json({ data, commentData });
+            });
+        })
         .catch((err) => {
           res.status(400).json({ msg: err.message });
         });
@@ -123,7 +131,14 @@ exports.updateLikes = (req, res, next) => {
         { new: true }
       )
         .populate('userId')
-        .then((data) => res.json({ data }))
+        .then((data) => {
+          Comment.find({ postId })
+            .populate('userId')
+            .sort({ createdAt: -1 })
+            .then((commentData) => {
+              res.json({ data, commentData });
+            });
+        })
         .catch((err) => {
           res.status(400).json({ msg: err.message });
         });

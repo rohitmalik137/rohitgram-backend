@@ -32,6 +32,9 @@ const authSchema = new Schema({
   profileUrl: {
     type: String,
   },
+  name: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model('Auth', authSchema);

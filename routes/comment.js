@@ -13,4 +13,16 @@ router.patch(
   commentController.likeCommentToggle
 );
 
+router.patch(
+  '/likeRepliedCommentToggle',
+  isAuth,
+  commentController.likeRepliedCommentToggle
+);
+
+router.patch('/replyComment', isAuth, commentController.replyComment);
+
+router.get(
+  '/getCommentReplies/:parentCommentId',
+  commentController.getCommentReplies
+);
 module.exports = router;

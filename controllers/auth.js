@@ -91,7 +91,7 @@ exports.login = (req, res, next) => {
         process.env.JWT_SECRET_KEY,
         { expiresIn: '1h' }
       );
-      console.log(loadedUser);
+      // console.log(loadedUser);
       res.status(200).json({
         token: token,
         user: {
