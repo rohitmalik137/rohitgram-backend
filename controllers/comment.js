@@ -1,8 +1,9 @@
 const { validationResult, Result } = require('express-validator');
 
-// const Post = require('../models/post');
+const Post = require('../models/post');
 const { Comment } = require('../models/comments');
 const { ReplyComment } = require('../models/comments');
+const io = require('../socket');
 
 exports.addComment = (req, res, next) => {
   const { userId, comment, postId } = req.body;
@@ -16,8 +17,17 @@ exports.addComment = (req, res, next) => {
   myComment
     .save()
     .then((data) => {
-      console.log(data);
-      res.json({ data });
+      Post.findById(postId)
+        .populate('userId')
+        .then((data) => {
+          Comment.find({ postId })
+            .populate('userId')
+            .sort({ createdAt: -1 })
+            .then((commentData) => {
+              io.getIO().emit('addComment', { action: 'commentAdded', data, commentData })
+              res.json({ data, commentData });
+            });
+        });
     })
     .catch((err) => {
       res.status(400).json({ msg: err.message });
@@ -25,7 +35,7 @@ exports.addComment = (req, res, next) => {
 };
 
 exports.likeCommentToggle = (req, res, next) => {
-  const { username, commentId } = req.body;
+  const { username, commentId, postId } = req.body;
   Comment.findById(commentId).then((data) => {
     if (data.likes.find((name) => name === username)) {
       Comment.findOneAndUpdate(
@@ -33,7 +43,19 @@ exports.likeCommentToggle = (req, res, next) => {
         { $pull: { likes: username } },
         { new: true }
       )
-        .then()
+        .then(() => {
+          Post.findById(postId)
+          .populate('userId')
+          .then((data) => {
+            Comment.find({ postId })
+              .populate('userId')
+              .sort({ createdAt: -1 })
+              .then((commentData) => {
+                io.getIO().emit('likeToggleComment', { action: 'likeToggleComment', data, commentData })
+                res.json({ data, commentData });
+              });
+          });
+        })
         .catch((err) => {
           res.status(400).json({ msg: err.message });
         });
@@ -43,7 +65,19 @@ exports.likeCommentToggle = (req, res, next) => {
         { $push: { likes: username } },
         { new: true }
       )
-        .then()
+        .then(() => {
+          Post.findById(postId)
+          .populate('userId')
+          .then((data) => {
+            Comment.find({ postId })
+              .populate('userId')
+              .sort({ createdAt: -1 })
+              .then((commentData) => {
+                io.getIO().emit('likeToggleComment', { action: 'likeToggleComment', data, commentData })
+                res.json({ data, commentData });
+              });
+          });
+        })
         .catch((err) => {
           res.status(400).json({ msg: err.message });
         });
@@ -65,7 +99,7 @@ exports.likeRepliedCommentToggle = (req, res, next) => {
           ReplyComment.find({ parentCommentId })
             .populate('userId')
             .then((data) => {
-              console.log(data);
+              io.getIO().emit('likeToggleRepliedComment', { action: 'likeToggleRepliedComment', data })
               res.status(200).json(data);
             })
             .catch((err) => {
@@ -85,7 +119,7 @@ exports.likeRepliedCommentToggle = (req, res, next) => {
           ReplyComment.find({ parentCommentId })
             .populate('userId')
             .then((data) => {
-              console.log(data);
+              io.getIO().emit('likeToggleRepliedComment', { action: 'likeToggleRepliedComment', data })
               res.status(200).json(data);
             })
             .catch((err) => {
@@ -117,7 +151,14 @@ exports.replyComment = (req, res, next) => {
         {
           replyCommentId: data._id,
         }
-      ).then((data) => res.json(data));
+      ).then(() => {
+        ReplyComment.find({ parentCommentId: replyTo_commentId })
+        .populate('userId')
+        .then((data) => {
+          io.getIO().emit('repliedComment', { action: 'commentReplied', data })
+          res.status(200).json(data);
+        })
+      });
     })
     .catch((err) => {
       res.status(400).json({ msg: err.message });
@@ -129,7 +170,6 @@ exports.getCommentReplies = (req, res, next) => {
   ReplyComment.find({ parentCommentId })
     .populate('userId')
     .then((data) => {
-      console.log(data);
       res.status(200).json(data);
     })
     .catch((err) => {

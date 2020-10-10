@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator');
 
 exports.getUsers = (req, res, next) => {
   Auth.find()
-    .select('username')
+    .select('-password')
     .then((users) => {
       res.json(users);
     });

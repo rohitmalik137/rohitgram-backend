@@ -3,7 +3,8 @@ const { validationResult } = require('express-validator');
 const Post = require('../models/post');
 const Auth = require('../models/auth');
 const { Comment } = require('../models/comments');
-const { ReplyComment } = require('../models/comments');
+// const { ReplyComment } = require('../models/comments');
+const io = require('../socket');
 
 exports.uploadNewPost = (req, res, next) => {
   const errors = validationResult(req);
@@ -34,13 +35,19 @@ exports.uploadNewPost = (req, res, next) => {
   newPost
     .save()
     .then((result) => {
-      Auth.updateOne({ _id: userId }, { $inc: { posts: 1 } }).then((res) =>
-        console.log(res)
-      );
-      res.status(201).json({
-        message: 'Post uploaded successfully!',
-        post: result,
-      });
+      Auth.updateOne({ _id: userId }, { $inc: { posts: 1 } })
+        .then(() => {
+          Post.find()
+            .sort({ createdAt: -1 })
+            .populate('userId')
+            .then((allPosts) => {
+              io.getIO().emit('posts', { action: 'create', post: allPosts })
+              res.status(201).json({
+                message: 'Post uploaded successfully!',
+                post: result,
+              });
+            })
+        })
       // return result;
     })
     .catch((err) => {
@@ -57,7 +64,9 @@ exports.getPosts = (req, res, next) => {
   Auth.findOne({ username }).then((result) => {
     const userId = result._id;
     Post.find({ userId })
+      .sort({ createdAt: -1 })
       .then((posts) => {
+        io.getIO().emit('userPosts', { action: 'getUserPosts', userPosts: posts });
         res.status(200).json({
           message: 'Posts Fetched Successfully',
           userPosts: posts,
@@ -118,6 +127,7 @@ exports.updateLikes = (req, res, next) => {
             .populate('userId')
             .sort({ createdAt: -1 })
             .then((commentData) => {
+              io.getIO().emit('likesUpdated', { action: 'updateLikes', data, commentData });
               res.json({ data, commentData });
             });
         })
@@ -136,6 +146,7 @@ exports.updateLikes = (req, res, next) => {
             .populate('userId')
             .sort({ createdAt: -1 })
             .then((commentData) => {
+              io.getIO().emit('likesUpdated', { action: 'updateLikes', data, commentData });
               res.json({ data, commentData });
             });
         })
