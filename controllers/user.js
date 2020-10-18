@@ -1,5 +1,6 @@
 const Auth = require('../models/auth');
 const { validationResult } = require('express-validator');
+const io = require('../socket');
 
 exports.getUsers = (req, res, next) => {
   Auth.find()
@@ -46,6 +47,7 @@ exports.updateFollow = (req, res, next) => {
         { new: true }
       )
         .then((data) => {
+          io.getIO().emit('updateFollow', { action: 'updateFollow', data })
           res.json({ data });
         })
         .catch((err) => {
@@ -80,6 +82,7 @@ exports.updateUnfollow = (req, res, next) => {
         { new: true }
       )
         .then((data) => {
+          io.getIO().emit('updateUnfollow', { action: 'updateUnfollow', data })
           res.json({ data });
         })
         .catch((err) => {
