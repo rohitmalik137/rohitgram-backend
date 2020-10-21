@@ -59,3 +59,105 @@ exports.getChat = (req, res, next) => {
       next(err);
     });
 };
+
+exports.blockUser = (req, res, next) => {
+  const { username, chatId } = req.body;
+
+  Chat.find({ chatId }).then((data) => {
+    if (data[0].blocked.includes(username)) {
+      Chat.findOneAndUpdate(
+        { chatId },
+        { $pull: { blocked: username } },
+        { new: true }
+      )
+        .then(() => {
+          Chat.find({ chatId })
+            .then((data) => {
+              io.getIO().emit('getChat', { action: 'getChat', data });
+              res.json(data);
+            })
+            .catch((err) => {
+              if (!err.statusCode) {
+                err.statusCode = 500;
+              }
+              next(err);
+            });
+        })
+        .catch((err) => {
+          if (!err.statusCode) {
+            err.statusCode = 500;
+          }
+          next(err);
+        });
+    } else {
+      Chat.findOneAndUpdate(
+        { chatId },
+        { $push: { blocked: username } },
+        { new: true }
+      )
+        .then(() => {
+          Chat.find({ chatId })
+            .then((data) => {
+              io.getIO().emit('getChat', { action: 'getChat', data });
+              res.json(data);
+            })
+            .catch((err) => {
+              if (!err.statusCode) {
+                err.statusCode = 500;
+              }
+              next(err);
+            });
+        })
+        .catch((err) => {
+          if (!err.statusCode) {
+            err.statusCode = 500;
+          }
+          next(err);
+        });
+    }
+  });
+};
+
+exports.unsendMessage = (req, res, next) => {
+  const { chatId, msgId } = req.body;
+  console.log(chatId, msgId);
+  Chat.findOneAndUpdate(
+    { chatId },
+    {
+      $pull: {
+        messages: { _id: msgId },
+      },
+    },
+    { new: true }
+  )
+    .then(() => {
+      Chat.find({ chatId })
+        .then((data) => {
+          io.getIO().emit('getChat', { action: 'getChat', data });
+          res.json(data);
+        })
+        .catch((err) => {
+          if (!err.statusCode) {
+            err.statusCode = 500;
+          }
+          next(err);
+        });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.isUserTyping = (req, res, next) => {
+  const { user, userTypingFor, isTyping } = req.body;
+  io.getIO().emit('isTyping', {
+    action: 'isTyping',
+    isTyping,
+    userTypingFor,
+    user,
+  });
+  res.json({});
+};

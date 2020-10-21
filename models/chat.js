@@ -8,6 +8,10 @@ const chatSchema = new Schema(
       type: String,
       required: true,
     },
+    blocked: {
+      type: Array,
+      default: [],
+    },
     messages: [
       {
         user: {
