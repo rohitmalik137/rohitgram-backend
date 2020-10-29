@@ -35,6 +35,7 @@ const authSchema = new Schema({
   name: {
     type: String,
   },
+  isVerified: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('Auth', authSchema);
