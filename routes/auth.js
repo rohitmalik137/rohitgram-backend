@@ -87,6 +87,39 @@ router.post(
   authController.login
 );
 
+// PATCH /auth/changePassword
+router.patch(
+  '/changePassword',
+  [
+    body('username')
+      .not()
+      .isEmpty()
+      .trim()
+      .escape()
+      .withMessage('User not exists. PLease log in first.'),
+    body('cpassword')
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage('Password must be minimum 5 characters long'),
+    body('npassword')
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage('New Password must be minimum 5 characters long')
+      .custom((value, { req }) => {
+        if (value !== req.body.cnpassword) {
+          throw new Error('Password confirmation does not match password');
+        }
+        return true;
+      }),
+    body('cnpassword')
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage('ConfirPassword must be minimum 5 characters long'),
+  ],
+  isAuth,
+  authController.postChangePassword
+);
+
 // GET /auth/user
 router.get('/user', isAuth, authController.userData);
 

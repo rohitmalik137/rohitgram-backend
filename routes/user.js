@@ -14,6 +14,13 @@ router.get('/userInfo/:username', userController.getUserInfo);
 router.patch('/follow', userController.updateFollow);
 router.patch('/unfollow', userController.updateUnfollow);
 
+// upload profile picture
 router.patch('/profile', isAuth, userController.updateProfile);
+
+router.patch(
+  '/removeProfilePicture',
+  isAuth,
+  userController.removeProfilePicture
+);
 
 module.exports = router;

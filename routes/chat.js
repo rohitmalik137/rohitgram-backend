@@ -17,6 +17,13 @@ router.patch('/blockUser', chatController.blockUser);
 // unsend chat msg
 router.patch('/unsendMessage', isAuth, chatController.unsendMessage);
 
+// like toggle single message
+router.patch(
+  '/toggleLikeMessage',
+  isAuth,
+  chatController.likeToggleSingleMessage
+);
+
 //check if other user is typing
 router.post('/isTyping', isAuth, chatController.isUserTyping);
 module.exports = router;

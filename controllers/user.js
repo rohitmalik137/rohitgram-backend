@@ -1,4 +1,5 @@
 const Auth = require('../models/auth');
+const fs = require('fs');
 const { validationResult } = require('express-validator');
 const io = require('../socket');
 
@@ -47,7 +48,7 @@ exports.updateFollow = (req, res, next) => {
         { new: true }
       )
         .then((data) => {
-          io.getIO().emit('updateFollow', { action: 'updateFollow', data })
+          io.getIO().emit('updateFollow', { action: 'updateFollow', data });
           res.json({ data });
         })
         .catch((err) => {
@@ -82,7 +83,7 @@ exports.updateUnfollow = (req, res, next) => {
         { new: true }
       )
         .then((data) => {
-          io.getIO().emit('updateUnfollow', { action: 'updateUnfollow', data })
+          io.getIO().emit('updateUnfollow', { action: 'updateUnfollow', data });
           res.json({ data });
         })
         .catch((err) => {
@@ -113,5 +114,32 @@ exports.updateProfile = (req, res, next) => {
     .then((data) => res.json({ data }))
     .catch((err) => {
       res.status(400).json({ msg: err.message });
+    });
+};
+
+exports.removeProfilePicture = (req, res, next) => {
+  const { username } = req.body;
+  Auth.findOne({ username })
+    .then((result) => {
+      if (result.profileUrl) {
+        fs.unlink(result.profileUrl, (err) => {
+          // console.log(err);
+        });
+        result.profileUrl = undefined;
+      }
+      result
+        .save()
+        .then((data) => {
+          res.json({ data });
+        })
+        .catch((err) => {
+          res.status(400).json({ msg: err.message });
+        });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };

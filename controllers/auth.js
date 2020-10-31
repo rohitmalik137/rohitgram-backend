@@ -398,7 +398,7 @@ exports.postResetPassword = (req, res, next) => {
         .hash(npassword, 12)
         .then((hashedPwd) => {
           Auth.findOneAndUpdate({ email }, { password: hashedPwd })
-            .then((ress) =>
+            .then(() =>
               res.json({
                 msg: 'Password changed successfully! Login to explore.',
                 status: 'success',
@@ -418,4 +418,54 @@ exports.postResetPassword = (req, res, next) => {
     .catch((err) => {
       return res.status(500).json({ msg: err.message });
     });
+};
+
+exports.postChangePassword = (req, res, next) => {
+  var errorString = '';
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    errors.array().forEach((ele) => {
+      errorString = errorString.concat(ele.msg + ',');
+    });
+    return res.status(422).json({
+      msg: errorString,
+    });
+  }
+
+  const { username, cpassword, cnpassword } = req.body;
+  console.log(username, cpassword, cnpassword);
+  Auth.findOne({ username }).then((result) => {
+    bcrypt
+      .compare(cpassword, result.password)
+      .then((data) => {
+        if (data) {
+          bcrypt
+            .hash(cnpassword, 12)
+            .then((hashedPwd) => {
+              result.password = hashedPwd;
+              result
+                .save()
+                .then(() => {
+                  res.json({
+                    msg: 'Password changed successfully!',
+                    status: 'success',
+                  });
+                })
+                .catch((err) => {
+                  return res.status(500).json({ msg: err.message });
+                });
+            })
+            .catch((err) => {
+              return res.status(500).json({ msg: err.message });
+            });
+        } else {
+          const error = new Error('Incorrent current password');
+          error.statusCode = 401;
+          throw error;
+        }
+      })
+      .catch((err) => {
+        return res.status(err.statusCode).json({ msg: err.message });
+      });
+  });
 };

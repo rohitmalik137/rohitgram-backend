@@ -9,7 +9,12 @@ exports.postMessage = (req, res, next) => {
         { chatId },
         {
           $push: {
-            messages: { user: user, message: message, sentAt: new Date() },
+            messages: {
+              user: user,
+              message: message,
+              likes: [],
+              sentAt: new Date(),
+            },
           },
         },
         { new: true }
@@ -27,7 +32,7 @@ exports.postMessage = (req, res, next) => {
     } else {
       const messageData = new Chat({
         chatId,
-        messages: [{ user, message, sentAt: new Date() }],
+        messages: [{ user, message, likes: [], sentAt: new Date() }],
       });
       messageData
         .save()
@@ -160,4 +165,47 @@ exports.isUserTyping = (req, res, next) => {
     user,
   });
   res.json({});
+};
+
+exports.likeToggleSingleMessage = (req, res, next) => {
+  const { chatId, msgId, userWhoLiked } = req.body;
+  Chat.findOne({ chatId })
+    .then((result) => {
+      if (result.messages.length > 0) {
+        result.messages.map((messgaeInfo) => {
+          if (messgaeInfo._id.toString() === msgId.toString()) {
+            if (messgaeInfo.likes.includes(userWhoLiked))
+              messgaeInfo.likes.pull(userWhoLiked);
+            else messgaeInfo.likes.push(userWhoLiked);
+          }
+        });
+        result
+          .save()
+          .then(() => {
+            Chat.find({ chatId })
+              .then((data) => {
+                io.getIO().emit('getChat', { action: 'getChat', data });
+                res.json(data);
+              })
+              .catch((err) => {
+                if (!err.statusCode) {
+                  err.statusCode = 500;
+                }
+                next(err);
+              });
+          })
+          .catch((err) => {
+            if (!err.statusCode) {
+              err.statusCode = 500;
+            }
+            next(err);
+          });
+      }
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };
