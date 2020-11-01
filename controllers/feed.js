@@ -22,8 +22,6 @@ exports.uploadNewPost = (req, res, next) => {
 
   const mediaUrl = req.file.path;
   const { caption, userId } = req.body;
-  // const userId = '5f4b21d71d824c2ee8966f96';
-  console.log(mediaUrl, caption, userId);
   const newPost = new Post({
     mediaUrl,
     caption,
@@ -35,19 +33,18 @@ exports.uploadNewPost = (req, res, next) => {
   newPost
     .save()
     .then((result) => {
-      Auth.updateOne({ _id: userId }, { $inc: { posts: 1 } })
-        .then(() => {
-          Post.find()
-            .sort({ createdAt: -1 })
-            .populate('userId')
-            .then((allPosts) => {
-              io.getIO().emit('posts', { action: 'create', post: allPosts })
-              res.status(201).json({
-                message: 'Post uploaded successfully!',
-                post: result,
-              });
-            })
-        })
+      Auth.updateOne({ _id: userId }, { $inc: { posts: 1 } }).then(() => {
+        Post.find()
+          .sort({ createdAt: -1 })
+          .populate('userId')
+          .then((allPosts) => {
+            io.getIO().emit('posts', { action: 'create', post: allPosts });
+            res.status(201).json({
+              message: 'Post uploaded successfully!',
+              post: result,
+            });
+          });
+      });
       // return result;
     })
     .catch((err) => {
@@ -60,13 +57,15 @@ exports.uploadNewPost = (req, res, next) => {
 
 exports.getPosts = (req, res, next) => {
   const username = req.params.username;
-  // console.log(username);
   Auth.findOne({ username }).then((result) => {
     const userId = result._id;
     Post.find({ userId })
       .sort({ createdAt: -1 })
       .then((posts) => {
-        io.getIO().emit('userPosts', { action: 'getUserPosts', userPosts: posts });
+        io.getIO().emit('userPosts', {
+          action: 'getUserPosts',
+          userPosts: posts,
+        });
         res.status(200).json({
           message: 'Posts Fetched Successfully',
           userPosts: posts,
@@ -90,7 +89,6 @@ exports.getAllPosts = (req, res, next) => {
 
 exports.getSinglePost = (req, res, next) => {
   const postId = req.params.postId;
-  // console.log(postId);
   Post.findById(postId)
     .populate('userId')
     .then((data) => {
@@ -112,8 +110,6 @@ exports.updateLikes = (req, res, next) => {
     });
   }
   const { username, postId } = req.body;
-  // console.log(username, postId);
-
   Post.findById(postId).then((data) => {
     if (data.likes.find((name) => name === username)) {
       Post.findOneAndUpdate(
@@ -127,7 +123,11 @@ exports.updateLikes = (req, res, next) => {
             .populate('userId')
             .sort({ createdAt: -1 })
             .then((commentData) => {
-              io.getIO().emit('likesUpdated', { action: 'updateLikes', data, commentData });
+              io.getIO().emit('likesUpdated', {
+                action: 'updateLikes',
+                data,
+                commentData,
+              });
               res.json({ data, commentData });
             });
         })
@@ -146,7 +146,11 @@ exports.updateLikes = (req, res, next) => {
             .populate('userId')
             .sort({ createdAt: -1 })
             .then((commentData) => {
-              io.getIO().emit('likesUpdated', { action: 'updateLikes', data, commentData });
+              io.getIO().emit('likesUpdated', {
+                action: 'updateLikes',
+                data,
+                commentData,
+              });
               res.json({ data, commentData });
             });
         })

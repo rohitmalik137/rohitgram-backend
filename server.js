@@ -7,6 +7,4 @@ const server = app.listen(port, () => {
 });
 
 const io = require('./socket').init(server);
-io.on('connection', (socket) => {
-  console.log('client connected!');
-});
+io.on('connection', (socket) => {});

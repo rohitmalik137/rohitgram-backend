@@ -55,7 +55,6 @@ app.use(require('./routes/chat'));
 app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
-  console.log(error);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
@@ -71,9 +70,7 @@ mongoose
     useCreateIndex: true,
     useFindAndModify: false,
   })
-  .then((result) => {
-    console.log('database connection success!!');
-  })
+  .then()
   .catch((err) => {
     console.log(err);
   });

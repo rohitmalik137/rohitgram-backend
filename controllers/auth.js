@@ -161,7 +161,6 @@ exports.login = (req, res, next) => {
         process.env.JWT_SECRET_KEY,
         { expiresIn: '1h' }
       );
-      // console.log(loadedUser);
       res.status(200).json({
         token: token,
         user: {
@@ -179,7 +178,6 @@ exports.login = (req, res, next) => {
 };
 
 exports.userData = (req, res, next) => {
-  // console.log(req.user);
   Auth.findById(req.user.userId)
     .select('-password')
     .then((user) => res.json(user));
@@ -375,7 +373,6 @@ exports.getEmailToResetPassword = (req, res, next) => {
 
 exports.postResetPassword = (req, res, next) => {
   const { email, otp, npassword } = req.body;
-  console.log(email, otp, npassword);
   var errorString = '';
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -433,7 +430,6 @@ exports.postChangePassword = (req, res, next) => {
   }
 
   const { username, cpassword, cnpassword } = req.body;
-  console.log(username, cpassword, cnpassword);
   Auth.findOne({ username }).then((result) => {
     bcrypt
       .compare(cpassword, result.password)

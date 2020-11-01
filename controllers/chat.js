@@ -125,7 +125,6 @@ exports.blockUser = (req, res, next) => {
 
 exports.unsendMessage = (req, res, next) => {
   const { chatId, msgId } = req.body;
-  console.log(chatId, msgId);
   Chat.findOneAndUpdate(
     { chatId },
     {

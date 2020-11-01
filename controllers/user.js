@@ -13,7 +13,6 @@ exports.getUsers = (req, res, next) => {
 
 exports.getUserInfo = (req, res, next) => {
   const username = req.params.username;
-  // console.log(username);
   Auth.findOne({ username })
     .select('-password')
     .then((info) => {
@@ -34,7 +33,6 @@ exports.updateFollow = (req, res, next) => {
   }
 
   const { username, followedUser } = req.body;
-  console.log(username, followedUser);
 
   Auth.findOneAndUpdate(
     { username },
@@ -69,7 +67,6 @@ exports.updateUnfollow = (req, res, next) => {
     });
   }
   const { username, followedUser } = req.body;
-  console.log(username, followedUser);
 
   Auth.findOneAndUpdate(
     { username },
@@ -122,9 +119,7 @@ exports.removeProfilePicture = (req, res, next) => {
   Auth.findOne({ username })
     .then((result) => {
       if (result.profileUrl) {
-        fs.unlink(result.profileUrl, (err) => {
-          // console.log(err);
-        });
+        fs.unlink(result.profileUrl, (err) => {});
         result.profileUrl = undefined;
       }
       result

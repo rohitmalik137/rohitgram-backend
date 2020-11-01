@@ -7,7 +7,6 @@ const io = require('../socket');
 
 exports.addComment = (req, res, next) => {
   const { userId, comment, postId } = req.body;
-  console.log(userId, comment, postId);
   const myComment = new Comment({
     comment,
     likes: [],
@@ -24,7 +23,11 @@ exports.addComment = (req, res, next) => {
             .populate('userId')
             .sort({ createdAt: -1 })
             .then((commentData) => {
-              io.getIO().emit('addComment', { action: 'commentAdded', data, commentData })
+              io.getIO().emit('addComment', {
+                action: 'commentAdded',
+                data,
+                commentData,
+              });
               res.json({ data, commentData });
             });
         });
@@ -45,16 +48,20 @@ exports.likeCommentToggle = (req, res, next) => {
       )
         .then(() => {
           Post.findById(postId)
-          .populate('userId')
-          .then((data) => {
-            Comment.find({ postId })
-              .populate('userId')
-              .sort({ createdAt: -1 })
-              .then((commentData) => {
-                io.getIO().emit('likeToggleComment', { action: 'likeToggleComment', data, commentData })
-                res.json({ data, commentData });
-              });
-          });
+            .populate('userId')
+            .then((data) => {
+              Comment.find({ postId })
+                .populate('userId')
+                .sort({ createdAt: -1 })
+                .then((commentData) => {
+                  io.getIO().emit('likeToggleComment', {
+                    action: 'likeToggleComment',
+                    data,
+                    commentData,
+                  });
+                  res.json({ data, commentData });
+                });
+            });
         })
         .catch((err) => {
           res.status(400).json({ msg: err.message });
@@ -67,16 +74,20 @@ exports.likeCommentToggle = (req, res, next) => {
       )
         .then(() => {
           Post.findById(postId)
-          .populate('userId')
-          .then((data) => {
-            Comment.find({ postId })
-              .populate('userId')
-              .sort({ createdAt: -1 })
-              .then((commentData) => {
-                io.getIO().emit('likeToggleComment', { action: 'likeToggleComment', data, commentData })
-                res.json({ data, commentData });
-              });
-          });
+            .populate('userId')
+            .then((data) => {
+              Comment.find({ postId })
+                .populate('userId')
+                .sort({ createdAt: -1 })
+                .then((commentData) => {
+                  io.getIO().emit('likeToggleComment', {
+                    action: 'likeToggleComment',
+                    data,
+                    commentData,
+                  });
+                  res.json({ data, commentData });
+                });
+            });
         })
         .catch((err) => {
           res.status(400).json({ msg: err.message });
@@ -87,7 +98,6 @@ exports.likeCommentToggle = (req, res, next) => {
 
 exports.likeRepliedCommentToggle = (req, res, next) => {
   const { username, commentId, parentCommentId } = req.body;
-  // console.log(commentId);
   ReplyComment.findById(commentId).then((data) => {
     if (data.likes.find((name) => name === username)) {
       ReplyComment.findOneAndUpdate(
@@ -99,7 +109,10 @@ exports.likeRepliedCommentToggle = (req, res, next) => {
           ReplyComment.find({ parentCommentId })
             .populate('userId')
             .then((data) => {
-              io.getIO().emit('likeToggleRepliedComment', { action: 'likeToggleRepliedComment', data })
+              io.getIO().emit('likeToggleRepliedComment', {
+                action: 'likeToggleRepliedComment',
+                data,
+              });
               res.status(200).json(data);
             })
             .catch((err) => {
@@ -119,7 +132,10 @@ exports.likeRepliedCommentToggle = (req, res, next) => {
           ReplyComment.find({ parentCommentId })
             .populate('userId')
             .then((data) => {
-              io.getIO().emit('likeToggleRepliedComment', { action: 'likeToggleRepliedComment', data })
+              io.getIO().emit('likeToggleRepliedComment', {
+                action: 'likeToggleRepliedComment',
+                data,
+              });
               res.status(200).json(data);
             })
             .catch((err) => {
@@ -135,7 +151,6 @@ exports.likeRepliedCommentToggle = (req, res, next) => {
 
 exports.replyComment = (req, res, next) => {
   const { comment, replyTo_commentId, repliedTo, userId } = req.body;
-  console.log(comment, repliedTo, userId, replyTo_commentId);
   const replyObject = new ReplyComment({
     comment,
     likes: [],
@@ -153,11 +168,14 @@ exports.replyComment = (req, res, next) => {
         }
       ).then(() => {
         ReplyComment.find({ parentCommentId: replyTo_commentId })
-        .populate('userId')
-        .then((data) => {
-          io.getIO().emit('repliedComment', { action: 'commentReplied', data })
-          res.status(200).json(data);
-        })
+          .populate('userId')
+          .then((data) => {
+            io.getIO().emit('repliedComment', {
+              action: 'commentReplied',
+              data,
+            });
+            res.status(200).json(data);
+          });
       });
     })
     .catch((err) => {
